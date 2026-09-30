@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integration Platform Roadmap</title>
+<style>
+:root{--bg:#fff;--fg:#1f2937;--mut:#6b7280;--line:#e5e7eb;--card:#f9fafb;--planned:#94a3b8;--prog:#2563eb;--risk:#dc2626;--done:#16a34a}
+@media (prefers-color-scheme:dark){:root{--bg:#111827;--fg:#e5e7eb;--mut:#9ca3af;--line:#374151;--card:#1f2937;--planned:#64748b;--prog:#3b82f6;--risk:#ef4444;--done:#22c55e}}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1{font-size:20px;margin:0}.sub{color:var(--mut);font-size:12px;margin:2px 0 12px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:12px}
+.grp{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.grp>span{color:var(--mut);font-size:12px;margin-right:2px}
+button{font:inherit;font-size:12px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);cursor:pointer}
+button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip.on{color:#fff;border-color:transparent}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.grid{min-width:900px}
+.row{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--line);min-height:30px}
+.row:last-child{border-bottom:0}
+.lab{padding:5px 8px;font-size:13px;border-right:1px solid var(--line);overflow:hidden}
+.lab small{color:var(--mut);display:block;font-size:11px}
+.lane{background:var(--card);font-weight:600;min-height:26px}
+.lane .lab{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.trk{position:relative}
+.mo{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);font-size:10px;color:var(--mut);padding:2px 3px}
+.head .trk{height:24px}
+.bar{position:absolute;top:6px;height:18px;border-radius:4px;background:var(--planned);color:#fff;font-size:11px;padding:0 6px;white-space:nowrap;overflow:hidden;cursor:pointer;opacity:.95}
+.bar.in_progress{background:var(--prog)}.bar.at_risk{background:var(--risk)}.bar.done{background:var(--done)}
+.bar.ext{background:repeating-linear-gradient(45deg,var(--planned),var(--planned) 6px,#7c8ba1 6px,#7c8ba1 12px)}
+.ms{position:absolute;top:7px;width:14px;height:14px;background:#d97706;transform:translateX(-7px) rotate(45deg);cursor:pointer}
+.mlab{position:absolute;top:6px;font-size:11px;padding-left:12px;white-space:nowrap}
+.dim{opacity:.25}.hl .bar,.hl.bar{outline:2px solid var(--fg)}
+.row.dim{opacity:.3}.row.hl{background:var(--card)}
+.tag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
+.b{font-size:10px;border:1px solid var(--line);border-radius:3px;padding:0 4px;margin-left:4px;color:var(--mut)}
+.warn{color:#d97706;font-size:11px}
+#det{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:13px;min-height:48px}
+.leg{display:flex;gap:12px;font-size:11px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+</style>
+</head>
+<body>
+<h1 id="t"></h1>
+<div class="sub" id="s"></div>
+<div class="ctl">
+  <div class="grp" id="lv"><span>Detail</span></div>
+  <div class="grp" id="tg"><span>Tags</span></div>
+  <div class="grp" id="md"><span>Match</span></div>
+</div>
+<div class="wrap"><div class="grid" id="g"></div></div>
+<div class="leg"><span><i style="background:var(--planned)"></i>Planned</span><span><i style="background:var(--prog)"></i>In progress</span><span><i style="background:var(--risk)"></i>At risk</span><span><i style="background:var(--done)"></i>Done</span><span><i style="background:#d97706;transform:rotate(45deg)"></i>Milestone</span><span>ADO = value from ADO, YAML = value from roadmap.yml</span></div>
+<div id="det">Click an item for details. Hover to highlight its dependencies.</div>
+
+<script>
+// In the real generator this block is injected from roadmap.yml merged with ADO.
+const DATA={
+meta:{title:"Integration Platform Roadmap",updated:"2026-09-30",start:"2026-10-01",end:"2027-06-30"},
+levels:{1:"Management",2:"Program",3:"Team"},
+tags:{platform:["Platform","#2563eb"],security:["Security","#dc2626"],iam:["IAM","#7c3aed"],api:["API","#059669"],kafka:["Kafka","#d97706"],docs:["Docs","#6b7280"],external:["External","#0891b2"],compliance:["Compliance","#be185d"]},
+lanes:[["streaming","Event streaming"],["identity","Identity & access"],["api-mgmt","API management"],["enablers","Team & documentation"],["external","External dependencies"]],
+ms:[{id:"ms-pilot",name:"Pilot go-live",date:"2027-01-31",tags:["platform"]},{id:"ms-prod",name:"Production go-live",date:"2027-05-15",tags:["platform","security"]}],
+items:[
+{id:"kafka-platform",lane:"streaming",title:"Kafka platform on OpenShift",ado:12345,type:"Epic",start:"2026-10-15",end:"2027-01-31",status:"in_progress",owner:"Platform team",tags:["platform","kafka"],dep:["network-approval","iam-integration"],note:"Foundation for all event-driven integrations. Gates pilot go-live."},
+{id:"kafka-monitoring",lane:"streaming",title:"Monitoring and alerting",ado:12401,type:"Feature",start:"2026-12-01",end:"2027-02-15",status:"planned",owner:"TBD",tags:["platform","kafka"],dep:["kafka-platform"]},
+{id:"kafka-governance",lane:"streaming",title:"Topic and schema governance",type:"Feature",start:"2026-11-01",end:"2027-01-15",status:"planned",owner:"TBD",tags:["kafka","docs"],dep:[],note:"Naming conventions, schema registry rules, ownership."},
+{id:"kafka-consumers",lane:"streaming",title:"Onboard first consumer teams",type:"Feature",start:"2027-02-01",end:"2027-04-30",status:"planned",owner:"TBD",tags:["platform"],dep:["ms-pilot","kafka-governance"]},
+{id:"iam-integration",lane:"identity",title:"IAM integration (SSO, service accounts)",ado:12377,type:"Epic",start:"2026-10-15",end:"2026-12-15",status:"at_risk",owner:"Platform team",tags:["iam","security"],dep:[],risk:"Medium: depends on central IAM team capacity in November."},
+{id:"iam-rbac",lane:"identity",title:"Role model for platform access",type:"Feature",start:"2026-11-01",end:"2026-12-01",status:"planned",owner:"TBD",tags:["iam","security","docs"],dep:[]},
+{id:"security-review",lane:"identity",title:"Security review and pen test",ado:12390,type:"Feature",start:"2027-01-05",end:"2027-03-15",status:"planned",owner:"Security",tags:["security","compliance"],dep:["kafka-platform","iam-integration"],risk:"High: review slot must be booked early; slippage moves production go-live."},
+{id:"api-gateway",lane:"api-mgmt",title:"API gateway baseline",ado:12450,type:"Epic",start:"2026-11-15",end:"2027-03-31",status:"planned",owner:"TBD",tags:["api","platform"],dep:["iam-integration"]},
+{id:"api-catalog",lane:"api-mgmt",title:"API catalog and developer portal",type:"Feature",start:"2027-02-01",end:"2027-05-31",status:"planned",owner:"TBD",tags:["api","docs"],dep:["api-gateway"]},
+{id:"team-setup",lane:"enablers",title:"Establish platform team",type:"Epic",start:"2026-10-01",end:"2026-12-31",status:"in_progress",owner:"Niklas",tags:["platform"],dep:[]},
+{id:"tech-docs",lane:"enablers",title:"Technical documentation and ADRs",ado:12310,type:"Feature",start:"2026-10-01",end:"2027-03-31",status:"in_progress",owner:"Platform team",tags:["docs"],dep:[]},
+{id:"runbooks",lane:"enablers",title:"Operations runbooks",type:"Task",start:"2027-01-15",end:"2027-03-15",status:"planned",owner:"TBD",tags:["docs","platform"],dep:["kafka-monitoring"]},
+{id:"network-approval",lane:"external",title:"Network and firewall approval",type:"external",start:"2026-10-01",end:"2026-11-15",status:"in_progress",owner:"Network team",tags:["external","security"],dep:[],note:"Blocks Kafka platform build-out."},
+{id:"licences",lane:"external",title:"Licence procurement",type:"external",start:"2026-10-01",end:"2026-12-15",status:"planned",owner:"Procurement",tags:["external"],dep:[],risk:"Low: framework agreement in place."}
+]};
+
+const LV={Epic:1,Feature:2,Task:3,external:2};
+const $=id=>document.getElementById(id), D=s=>new Date(s).getTime();
+const t0=D(DATA.meta.start), t1=D(DATA.meta.end), span=t1-t0;
+const pc=d=>Math.max(0,Math.min(100,(D(d)-t0)/span*100));
+DATA.items.forEach(i=>{i.level=i.level||LV[i.type]||3});
+DATA.ms.forEach(m=>{m.level=1;m.type="milestone";m.dep=m.dep||[]});
+const byId={};[...DATA.items,...DATA.ms].forEach(x=>byId[x.id]=x);
+
+let st={level:2,tags:new Set(),mode:"or"};
+function fromHash(){const p=new URLSearchParams(location.hash.slice(1));
+  if(p.get("level"))st.level=+p.get("level");
+  if(p.get("tags"))st.tags=new Set(p.get("tags").split(",").filter(t=>DATA.tags[t]));
+  if(p.get("mode"))st.mode=p.get("mode")}
+function toHash(){const p=new URLSearchParams();p.set("level",st.level);
+  if(st.tags.size)p.set("tags",[...st.tags].join(","));p.set("mode",st.mode);
+  history.replaceState(null,"","#"+p)}
+
+const vis=x=>{if(x.level>st.level)return false;if(!st.tags.size)return true;
+  const h=[...st.tags].map(t=>x.tags.includes(t));return st.mode==="and"?h.every(Boolean):h.some(Boolean)};
+
+function controls(){
+  const mk=(el,txt,on,fn,style)=>{const b=document.createElement("button");b.textContent=txt;
+    if(on)b.classList.add("on");if(style)b.style.cssText=on?style:"";b.onclick=fn;el.appendChild(b);return b};
+  ["lv","tg","md"].forEach(id=>{const e=$(id);[...e.querySelectorAll("button")].forEach(b=>b.remove())});
+  for(const l in DATA.levels)mk($("lv"),l+" · "+DATA.levels[l],st.level==l,()=>{st.level=+l;draw()});
+  mk($("tg"),"All",!st.tags.size,()=>{st.tags.clear();draw()});
+  for(const t in DATA.tags){const b=mk($("tg"),DATA.tags[t][0],st.tags.has(t),()=>{st.tags.has(t)?st.tags.delete(t):st.tags.add(t);draw()},"background:"+DATA.tags[t][1]);
+    b.classList.add("chip")}
+  ["or","and"].forEach(m=>mk($("md"),m.toUpperCase(),st.mode===m,()=>{st.mode=m;draw()}));
+}
+
+function months(){let h="",d=new Date(t0);d.setDate(1);
+  while(d.getTime()<t1){const p=pc(d.toISOString().slice(0,10));
+    h+=`<div class="mo" style="left:${p}%">${d.toLocaleString("en",{month:"short"})}${d.getMonth()==0?" "+d.getFullYear():""}</div>`;
+    d.setMonth(d.getMonth()+1)}return h}
+
+function hiddenDeps(x){return x.dep.filter(d=>byId[d]&&!vis(byId[d])).length}
+
+function draw(){
+  toHash();controls();
+  $("t").textContent=DATA.meta.title;
+  $("s").textContent="Generated "+DATA.meta.updated+" · view: "+DATA.levels[st.level]+(st.tags.size?" · tags: "+[...st.tags].join(st.mode==="and"?" + ":" / "):"");
+  let h=`<div class="row head"><div class="lab"></div><div class="trk">${months()}</div></div>`;
+  const ms=DATA.ms.filter(vis);
+  if(ms.length){h+=`<div class="row lane"><div class="lab">Milestones</div><div class="trk"></div></div>`;
+    ms.forEach(m=>{h+=`<div class="row" data-id="${m.id}"><div class="lab">${m.name}<small>${m.date}</small></div><div class="trk"><div class="ms" style="left:${pc(m.date)}%" data-id="${m.id}"></div><div class="mlab" style="left:${pc(m.date)}%">${m.name}</div></div></div>`})}
+  DATA.lanes.forEach(([lid,ln])=>{
+    const its=DATA.items.filter(i=>i.lane===lid&&vis(i));if(!its.length)return;
+    h+=`<div class="row lane"><div class="lab">${ln}</div><div class="trk"></div></div>`;
+    its.forEach(i=>{
+      const dots=i.tags.map(t=>`<span class="tag" style="background:${DATA.tags[t][1]}"></span>`).join("");
+      const hd=hiddenDeps(i),w=pc(i.end)-pc(i.start);
+      h+=`<div class="row" data-id="${i.id}"><div class="lab">${i.title}<small>${dots}${i.owner}<span class="b">${i.ado?"ADO #"+i.ado:"YAML"}</span>${i.risk?' <span class="warn">⚠ risk</span>':""}${hd?` <span class="warn">↳ ${hd} hidden dep.</span>`:""}</small></div>
+      <div class="trk"><div class="bar ${i.status} ${i.type==="external"?"ext":""}" data-id="${i.id}" style="left:${pc(i.start)}%;width:${w}%">${i.start.slice(5)} → ${i.end.slice(5)}</div></div></div>`})});
+  if(!ms.length&&!DATA.items.some(vis))h+=`<div class="row"><div class="lab">No items match the filter.</div><div></div></div>`;
+  $("g").innerHTML=h;
+  $("g").querySelectorAll("[data-id]").forEach(e=>{
+    e.onmouseenter=()=>hl(e.dataset.id);e.onmouseleave=()=>hl(null);e.onclick=()=>detail(e.dataset.id)});
+}
+
+function hl(id){const rows=$("g").querySelectorAll(".row[data-id]");
+  if(!id){rows.forEach(r=>r.classList.remove("dim","hl"));return}
+  const x=byId[id],rel=new Set([id,...x.dep,...Object.values(byId).filter(o=>o.dep.includes(id)).map(o=>o.id)]);
+  rows.forEach(r=>{r.classList.toggle("dim",!rel.has(r.dataset.id));r.classList.toggle("hl",r.dataset.id===id)})}
+
+function detail(id){const x=byId[id],n=i=>byId[i]?(byId[i].title||byId[i].name):i;
+  const down=Object.values(byId).filter(o=>o.dep.includes(id)).map(o=>o.title||o.name);
+  $("det").innerHTML=`<b>${x.title||x.name}</b> <span class="b">${x.ado?"ADO #"+x.ado:"YAML"}</span><br>`+
+   (x.start?`${x.start} → ${x.end} · ${x.status.replace("_"," ")} · owner: ${x.owner}<br>`:`Date: ${x.date}<br>`)+
+   `Tags: ${x.tags.join(", ")}<br>`+(x.dep.length?`Depends on: ${x.dep.map(n).join(", ")}<br>`:"")+
+   (down.length?`Blocks: ${down.join(", ")}<br>`:"")+(x.risk?`<span class="warn">Risk: ${x.risk}</span><br>`:"")+(x.note?x.note:"")}
+
+fromHash();draw();
+</script>
+</body>
+</html>

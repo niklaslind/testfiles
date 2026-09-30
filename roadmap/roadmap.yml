@@ -1,0 +1,252 @@
+# roadmap.yml - single source for roadmap structure
+# Rule: ADO owns execution facts (title, state, dates, owner) for items with an `ado` id.
+# YAML owns structure (lanes, dependencies, milestones, risks, notes) and acts as
+# fallback/default for any field ADO does not have a value for.
+
+meta:
+  title: Integration Platform Roadmap
+  version: 1
+  updated: 2026-09-30
+  owner: Niklas
+  timeline:
+    start: 2026-10-01
+    end: 2027-06-30
+
+# --- ADO integration (optional; omit the block to run YAML-only) -------------
+ado:
+  organization: my-org
+  project: my-project
+  # Only these fields may be overridden by ADO. Everything else stays YAML-only.
+  overrides: [title, status, start, end, owner, tags]
+  # Optional: auto-add epics not listed below into an "Unsorted" lane
+  auto_include:
+    enabled: false
+    work_item_types: [Epic]
+    area_path: my-project\Platform
+  # Map ADO states to roadmap statuses
+  status_map:
+    New: planned
+    Active: in_progress
+    Resolved: in_progress
+    Closed: done
+    Removed: cancelled
+
+# --- Defaults applied to every item unless overridden ------------------------
+defaults:
+  status: planned
+  owner: TBD
+
+# --- Detail levels (used by the HTML detail selector) ------------------------
+# Default level per item type; an item's own `level` overrides this.
+levels:
+  by_type:
+    milestone: 1
+    Epic: 1
+    Feature: 2
+    Task: 3
+    external: 2
+  labels:
+    1: Management
+    2: Program
+    3: Team
+
+# --- Tag vocabulary (generator warns on unknown tags, normalises case) -------
+known_tags:
+  platform:   { label: Platform,   color: "#2563eb" }
+  security:   { label: Security,   color: "#dc2626" }
+  iam:        { label: IAM,        color: "#7c3aed" }
+  api:        { label: API,        color: "#059669" }
+  kafka:      { label: Kafka,      color: "#d97706" }
+  docs:       { label: Docs,       color: "#6b7280" }
+  external:   { label: External,   color: "#0891b2" }
+  compliance: { label: Compliance, color: "#be185d" }
+
+# --- Lanes (rows in the roadmap) ---------------------------------------------
+lanes:
+  - id: streaming
+    name: Event streaming
+  - id: identity
+    name: Identity & access
+  - id: api-mgmt
+    name: API management
+  - id: enablers
+    name: Team & documentation
+  - id: external
+    name: External dependencies
+
+# --- Milestones (YAML-only, shown as diamonds) -------------------------------
+milestones:
+  - id: ms-pilot
+    name: Pilot go-live
+    date: 2027-01-31
+    tags: [platform]
+  - id: ms-prod
+    name: Production go-live
+    date: 2027-05-15
+    tags: [platform, security]
+
+# --- Items -------------------------------------------------------------------
+# Fields:
+#   id          unique, stable key used for dependencies
+#   lane        one of the lanes above
+#   title       fallback title (ADO title wins if `ado` is set and overrides allow it)
+#   ado         ADO work item id (optional)
+#   type        Epic | Feature | Task | external (derives detail level)
+#   start/end   fallback dates (ADO Start Date / Target Date win if present)
+#   status      planned | in_progress | done | at_risk | cancelled
+#   owner       fallback owner
+#   tags        merged (union) with ADO tags
+#   level       optional explicit detail level (1-3)
+#   depends_on  list of item or milestone ids
+#   note        short "why it matters" / context, YAML-only
+#   risk        optional { level: low|medium|high, text: ... }
+items:
+  # ---- Event streaming ----
+  - id: kafka-platform
+    lane: streaming
+    title: Kafka platform on OpenShift
+    ado: 12345
+    type: Epic
+    start: 2026-10-15
+    end: 2027-01-31
+    status: in_progress
+    owner: Platform team
+    tags: [platform, kafka]
+    depends_on: [network-approval, iam-integration]
+    note: Foundation for all event-driven integrations. Gates pilot go-live.
+
+  - id: kafka-monitoring
+    lane: streaming
+    title: Monitoring and alerting
+    ado: 12401
+    type: Feature
+    start: 2026-12-01
+    end: 2027-02-15
+    tags: [platform, kafka]
+    depends_on: [kafka-platform]
+
+  - id: kafka-topic-governance
+    lane: streaming
+    title: Topic and schema governance model
+    type: Feature            # not yet in ADO, YAML values used as-is
+    start: 2026-11-01
+    end: 2027-01-15
+    tags: [kafka, docs]
+    note: Naming conventions, schema registry rules, ownership.
+
+  - id: kafka-onboard-first-consumers
+    lane: streaming
+    title: Onboard first consumer teams
+    type: Feature
+    start: 2027-02-01
+    end: 2027-04-30
+    tags: [platform]
+    depends_on: [ms-pilot, kafka-topic-governance]
+
+  # ---- Identity & access ----
+  - id: iam-integration
+    lane: identity
+    title: IAM integration (SSO and service accounts)
+    ado: 12377
+    type: Epic
+    start: 2026-10-15
+    end: 2026-12-15
+    status: in_progress
+    tags: [iam, security]
+    risk:
+      level: medium
+      text: Depends on central IAM team capacity in November.
+
+  - id: iam-rbac-model
+    lane: identity
+    title: Role model for platform access
+    type: Feature
+    start: 2026-11-01
+    end: 2026-12-01
+    tags: [iam, security, docs]
+    depends_on: []
+
+  - id: security-review
+    lane: identity
+    title: Security review and penetration test
+    ado: 12390
+    type: Feature
+    start: 2027-01-05
+    end: 2027-03-15
+    tags: [security, compliance]
+    depends_on: [kafka-platform, iam-integration]
+    risk:
+      level: high
+      text: Review slot must be booked early; slippage moves production go-live.
+
+  # ---- API management ----
+  - id: api-gateway
+    lane: api-mgmt
+    title: API gateway baseline
+    ado: 12450
+    type: Epic
+    start: 2026-11-15
+    end: 2027-03-31
+    tags: [api, platform]
+    depends_on: [iam-integration]
+
+  - id: api-catalog
+    lane: api-mgmt
+    title: API catalog and developer portal
+    type: Feature
+    start: 2027-02-01
+    end: 2027-05-31
+    tags: [api, docs]
+    depends_on: [api-gateway]
+
+  # ---- Team & documentation ----
+  - id: team-setup
+    lane: enablers
+    title: Establish platform team
+    type: Epic
+    start: 2026-10-01
+    end: 2026-12-31
+    status: in_progress
+    tags: [platform]
+    level: 1
+
+  - id: tech-docs
+    lane: enablers
+    title: Technical documentation and ADRs
+    ado: 12310
+    type: Feature
+    start: 2026-10-01
+    end: 2027-03-31
+    tags: [docs]
+
+  - id: runbooks
+    lane: enablers
+    title: Operations runbooks
+    type: Task
+    start: 2027-01-15
+    end: 2027-03-15
+    tags: [docs, platform]
+    depends_on: [kafka-monitoring]
+
+  # ---- External dependencies (not in ADO, dates live here) ----
+  - id: network-approval
+    lane: external
+    title: Network and firewall approval
+    type: external
+    start: 2026-10-01
+    end: 2026-11-15
+    owner: Network team
+    tags: [external, security]
+    note: Blocks Kafka platform build-out.
+
+  - id: procurement-licences
+    lane: external
+    title: Licence procurement
+    type: external
+    start: 2026-10-01
+    end: 2026-12-15
+    owner: Procurement
+    tags: [external]
+    risk:
+      level: low
+      text: Framework agreement already in place.
